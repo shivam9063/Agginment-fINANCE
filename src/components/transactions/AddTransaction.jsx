@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch } from "react-redux";
 import { addTransaction, updateTransaction } from "../../features/finance/financeSlice";
 
@@ -24,6 +25,23 @@ const AddTransactionModal = ({ close, initialTransaction }) => {
             setForm({ amount: "", category: "", type: "expense" });
         }
     }, [initialTransaction]);
+
+    useEffect(() => {
+        const handleEscape = (event) => {
+            if (event.key === "Escape") {
+                close();
+            }
+        };
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        window.addEventListener("keydown", handleEscape);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", handleEscape);
+        };
+    }, [close]);
 
     const handleSubmit = () => {
         const amount = Number(form.amount);
@@ -54,56 +72,82 @@ const AddTransactionModal = ({ close, initialTransaction }) => {
         close();
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md">
-            <div className="w-full max-w-md rounded-[1.75rem] border border-white/60 bg-white/92 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.22)] dark:border-white/10 dark:bg-slate-900/90 dark:text-white">
-                <h2 className="mb-1 text-xl font-black tracking-tight">{isEditing ? "Edit Transaction" : "Add Transaction"}</h2>
-                <p className="mb-5 text-sm text-slate-500 dark:text-slate-400">
-                    {isEditing ? "Update the selected entry." : "Create a new income or expense entry."}
-                </p>
+    const modalContent = (
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/45 p-3 backdrop-blur-sm sm:p-4">
+            <button
+                type="button"
+                aria-label="Close transaction modal"
+                onClick={close}
+                className="absolute inset-0"
+            />
 
-                <input
-                    placeholder="Amount"
-                    value={form.amount}
-                    className="mb-3 w-full rounded-2xl border border-slate-200 bg-white/80 p-3 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 dark:border-slate-700 dark:bg-slate-950/80"
-                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                />
+            <div className="relative w-[min(92vw,30rem)] overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/95 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.22)] dark:border-white/10 dark:bg-slate-900/92 dark:text-white sm:p-6">
+                <div className="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="text-xl font-black tracking-tight">{isEditing ? "Edit Transaction" : "Add Transaction"}</h2>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            {isEditing ? "Update the selected entry." : "Create a new income or expense entry."}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={close}
+                        aria-label="Close modal"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-                <input
-                    placeholder="Category"
-                    value={form.category}
-                    className="mb-3 w-full rounded-2xl border border-slate-200 bg-white/80 p-3 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 dark:border-slate-700 dark:bg-slate-950/80"
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                />
+                <div className="space-y-3">
+                    <input
+                        placeholder="Amount"
+                        value={form.amount}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 dark:border-slate-700 dark:bg-slate-950/80"
+                        onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                    />
 
-                <select
-                    value={form.type}
-                    className="mb-5 w-full rounded-2xl border border-slate-200 bg-white/80 p-3 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 dark:border-slate-700 dark:bg-slate-950/80"
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                </select>
+                    <input
+                        placeholder="Category"
+                        value={form.category}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 dark:border-slate-700 dark:bg-slate-950/80"
+                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    />
 
-                {error && <p className="mb-4 text-sm font-medium text-rose-500">{error}</p>}
+                    <select
+                        value={form.type}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 dark:border-slate-700 dark:bg-slate-950/80"
+                        onChange={(e) => setForm({ ...form, type: e.target.value })}
+                    >
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
 
-                <div className="flex gap-3">
+                {error && <p className="mt-3 text-sm font-medium text-rose-500">{error}</p>}
+
+                <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:gap-3">
                     <button
                         onClick={close}
-                        className="w-1/2 rounded-2xl border border-slate-200 px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="w-1/2 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-500 px-4 py-3 font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-cyan-400"
+                        className="w-full rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-500 px-4 py-3 font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-cyan-400"
                     >
-                        {isEditing ? "Save" : "Add"}
+                        {isEditing ? "Save Changes" : "Add Transaction"}
                     </button>
                 </div>
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default AddTransactionModal;
