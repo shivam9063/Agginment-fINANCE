@@ -1,0 +1,77 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    font-family: "Manrope", "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 30%),
+      linear-gradient(to bottom, #f8fafc, #e2e8f0);
+    color: #0f172a;
+    transition: background-color 250ms ease, color 250ms ease;
+  }
+
+  html.dark body {
+    background:
+      radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 28%),
+      linear-gradient(to bottom, #020617, #0f172a);
+    color: #e2e8f0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  .section-reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: fadeUp 520ms ease forwards;
+  }
+
+  .section-reveal-1 {
+    animation-delay: 60ms;
+  }
+
+  .section-reveal-2 {
+    animation-delay: 120ms;
+  }
+
+  .section-reveal-3 {
+    animation-delay: 180ms;
+  }
+
+  .section-reveal-4 {
+    animation-delay: 240ms;
+  }
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
